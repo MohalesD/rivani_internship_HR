@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Fully Burdened Cost of a Hire | Rivani</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #171008;
+  --surf:     #241608;
+  --surf2:    #301D0A;
+  --bord:     #4A3118;
+  --gold:     #BB9471;
+  --gold-lt:  #D4B896;
+  --gold-dim: #7A5C40;
+  --forest:   #2D6339;
+  --fore-lt:  #3A8049;
+  --cream:    #F2ECE2;
+  --muted:    #9A8672;
+  --red:      #B8392A;
+  --red-lt:   #E04030;
+  --amber:    #D4921A;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--cream);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;display:flex;flex-direction:column}
+
+/* ── TOP CONTROL BAR ─────────────────────────────── */
+.topbar{
+  flex-shrink:0;
+  background:var(--surf);
+  border-bottom:1px solid var(--bord);
+  padding:.75rem 3rem;
+  display:flex;align-items:center;gap:2rem;
+  z-index:10;
+}
+.wordmark{font-family:'Cormorant Garamond',serif;font-size:1.5rem;letter-spacing:.3em;color:var(--gold);flex-shrink:0}
+.salary-control{display:flex;align-items:center;gap:1.25rem;flex:1}
+.salary-label{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);flex-shrink:0}
+.salary-value{font-family:'Cormorant Garamond',serif;font-size:1.75rem;color:var(--gold);min-width:110px;line-height:1;flex-shrink:0}
+input[type=range]{-webkit-appearance:none;width:100%;height:2px;background:var(--bord);border-radius:2px;outline:none;cursor:pointer;flex:1}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--gold);cursor:pointer}
+.range-ends{display:flex;gap:.5rem;font-size:.65rem;color:var(--gold-dim);flex-shrink:0}
+
+/* progress dots */
+.progress-bar{flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:.55rem 1.5rem;background:var(--bg);border-bottom:1px solid var(--bord)}
+.progress-dots{display:flex;gap:.5rem;align-items:center}
+.pdot{width:7px;height:7px;border-radius:50%;background:var(--bord);cursor:pointer;transition:background .2s}
+.pdot.active{background:var(--gold)}
+.pdot.done{background:var(--gold-dim)}
+.tool-link{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-dim);text-decoration:none;transition:color .2s;white-space:nowrap;font-family:'Inter',sans-serif}
+.tool-link:hover{color:var(--gold)}
+.tool-link-ghost{display:inline-block;visibility:hidden;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;font-family:'Inter',sans-serif}
+
+/* ── SECTION WRAPPER ─────────────────────────────── */
+.sections{flex:1;overflow:hidden;position:relative}
+.section{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;
+  transition:opacity .35s ease;
+  overflow-y:auto;
+}
+.section.active{opacity:1;pointer-events:all}
+
+/* SECTION CONTENT PADDING */
+.sec-inner{max-width:1100px;margin:0 auto;padding:2rem 3rem 5rem;width:100%}
+
+/* Section number + header */
+.sec-num{font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:.5rem}
+.sec-h{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3.2rem);font-weight:300;line-height:1.15;color:var(--cream);margin-bottom:.6rem}
+.sec-h em{color:var(--gold);font-style:italic}
+.sec-sub{font-size:.88rem;color:var(--muted);max-width:560px;line-height:1.7;margin-bottom:2rem}
+
+/* ── NAV ─────────────────────────────────────────── */
+.nav-footer{
+  flex-shrink:0;
+  background:var(--surf);
+  border-top:1px solid var(--bord);
+  padding:.9rem 3rem;
+  display:flex;justify-content:space-between;align-items:center;
+  z-index:10;
+}
+.nav-btn{
+  background:none;border:1px solid var(--bord);
+  color:var(--muted);
+  font-family:'Inter',sans-serif;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:.55rem 1.5rem;border-radius:2px;cursor:pointer;
+  transition:all .2s;
+}
+.nav-btn:hover{border-color:var(--gold);color:var(--gold)}
+.nav-btn.primary{background:var(--gold);border-color:var(--gold);color:var(--bg);font-weight:600}
+.nav-btn.primary:hover{background:var(--gold-lt)}
+.nav-btn:disabled{opacity:.25;cursor:default}
+.nav-btn:disabled:hover{border-color:var(--bord);color:var(--muted)}
+footer{text-align:center;padding:1.25rem;font-size:.6rem;color:var(--gold-dim);letter-spacing:.1em;border-top:1px solid var(--bord)}
+.sec-counter{font-size:.7rem;color:var(--muted);letter-spacing:.08em}
+
+/* ── SECTION 1: ANNOUNCED ──────────────────────────── */
+.announced-hero{display:flex;flex-direction:column;align-items:flex-start;padding:2rem 0}
+.announced-tag{font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+.announced-num{font-family:'Cormorant Garamond',serif;font-size:clamp(5rem,12vw,9rem);font-weight:300;color:var(--gold);line-height:.9;margin-bottom:1.25rem}
+.announced-caption{font-size:.82rem;color:var(--muted);max-width:400px;line-height:1.7;border-left:2px solid var(--bord);padding-left:1rem}
+.announced-note{margin-top:2.5rem;display:inline-flex;align-items:center;gap:.75rem;background:var(--surf);border:1px solid var(--bord);padding:.75rem 1.25rem;border-radius:3px}
+.announced-note-icon{font-size:1.1rem}
+.announced-note-text{font-size:.78rem;color:var(--muted);line-height:1.5}
+.announced-note-text strong{color:var(--cream)}
+
+/* ── SECTION 2: LOADED COST ───────────────────────── */
+.loaded-layout{display:grid;grid-template-columns:1fr 320px;gap:2rem;align-items:start}
+
+/* Category blocks */
+.cat-block{margin-bottom:1.25rem}
+.cat-title{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:.4rem 0;border-bottom:1px solid var(--bord);margin-bottom:.6rem;display:flex;justify-content:space-between;align-items:center}
+.cat-subtotal{color:var(--gold-dim);font-weight:600}
+
+.comp-row{
+  display:flex;align-items:center;gap:.75rem;
+  padding:.65rem .85rem;border-radius:2px;border:1px solid var(--bord);
+  margin-bottom:.35rem;background:var(--surf);
+  cursor:pointer;transition:opacity .2s,border-color .15s;
+  user-select:none;
+}
+.comp-row.mandatory{cursor:default}
+.comp-row.off{opacity:.3}
+.comp-row:not(.mandatory):hover{border-color:var(--gold-dim)}
+.cb{width:16px;height:16px;border:1px solid var(--gold-dim);border-radius:2px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;font-size:.7rem;font-weight:700;color:transparent}
+.comp-row.on .cb{background:var(--gold);border-color:var(--gold);color:var(--bg)}
+.comp-row.mandatory .cb{background:var(--bord);border-color:var(--bord);color:var(--muted);cursor:default}
+.dot8{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cr-body{flex:1}
+.cr-name{font-size:.8rem;font-weight:500;color:var(--cream);margin-bottom:.1rem}
+.cr-detail{font-size:.68rem;color:var(--muted)}
+.cr-amt{font-size:.85rem;font-weight:600;color:var(--gold);text-align:right;min-width:65px}
+
+/* Sidebar total */
+.total-panel{background:var(--surf);border:1px solid var(--bord);border-top:2px solid var(--gold);border-radius:3px;padding:1.25rem;position:sticky;top:0}
+.tp-eye{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+.tp-num{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;color:var(--gold);line-height:1;margin-bottom:.3rem;transition:color .2s}
+.tp-mult{font-size:.75rem;color:var(--muted);margin-bottom:1.25rem}
+.tp-mult span{color:var(--gold-lt);font-weight:600}
+
+/* Stacked bar in sidebar */
+.sbar-wrap{display:flex;gap:1rem;height:140px;align-items:flex-end;margin-bottom:1rem}
+.sbar-col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end}
+.sbar-col-label{font-size:.6rem;color:var(--muted);margin-top:.4rem;text-align:center}
+.sbar-fill{width:100%;border-radius:2px 2px 0 0;transition:height .4s ease}
+
+.bdown{list-style:none}
+.bdown-row{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--bord);font-size:.73rem;transition:opacity .2s}
+.bdown-row:last-child{border-bottom:none}
+.bdown-row.dim{opacity:.28}
+.bdown-left{display:flex;align-items:center;gap:.4rem;color:var(--muted)}
+.bdown-right{font-weight:600;color:var(--cream)}
+.bdown-total-row{display:flex;justify-content:space-between;padding:.5rem 0 0;margin-top:.15rem;border-top:1px solid var(--gold-dim);font-size:.8rem;font-weight:700;color:var(--gold)}
+
+/* Mode tabs */
+.mode-tabs{display:flex;gap:.5rem;margin-bottom:1.25rem}
+.mode-tab{padding:.4rem 1rem;border:1px solid var(--bord);border-radius:2px;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);cursor:pointer;transition:all .15s}
+.mode-tab.active{background:var(--gold);border-color:var(--gold);color:var(--bg);font-weight:600}
+
+/* ── SECTION 3: RISK LAYER ────────────────────────── */
+.risk-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem}
+.risk-card{background:var(--surf);border:1px solid var(--bord);border-left:3px solid var(--amber);border-radius:3px;padding:1.1rem 1.25rem}
+.risk-card.red{border-left-color:var(--red)}
+.risk-card.gold{border-left-color:var(--gold)}
+.risk-label{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+.risk-title{font-size:.9rem;font-weight:600;color:var(--cream);margin-bottom:.4rem}
+.risk-range{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--amber);line-height:1;margin-bottom:.5rem}
+.risk-card.red .risk-range{color:var(--red-lt)}
+.risk-card.gold .risk-range{color:var(--gold)}
+.risk-body{font-size:.73rem;color:var(--muted);line-height:1.65}
+
+.risk-probability-note{background:rgba(212,146,26,.08);border:1px solid rgba(212,146,26,.25);border-radius:3px;padding:1rem 1.25rem;font-size:.78rem;color:var(--muted);line-height:1.7}
+.risk-probability-note strong{color:var(--amber)}
+
+/* ── SECTION 4: EXIT EVENT ───────────────────────── */
+.exit-layout{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+.exit-inputs{}
+.exit-slider-row{margin-bottom:1.1rem}
+.exit-slider-label{font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem;display:flex;justify-content:space-between}
+.exit-slider-label span{color:var(--gold);font-weight:600}
+.exit-result-panel{background:var(--surf);border:1px solid var(--bord);border-top:2px solid var(--red);border-radius:3px;padding:1.5rem}
+.exit-total-label{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+.exit-total-num{font-family:'Cormorant Garamond',serif;font-size:3rem;color:var(--red-lt);line-height:1;margin-bottom:.5rem;transition:all .3s}
+.exit-mult-label{font-size:.75rem;color:var(--muted);margin-bottom:1.5rem}
+.exit-mult-label span{color:var(--red-lt);font-weight:600}
+.exit-bdown{list-style:none}
+.exit-row{display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid var(--bord);font-size:.75rem}
+.exit-row:last-child{border-bottom:none}
+.exit-row-label{color:var(--muted)}
+.exit-row-val{font-weight:600;color:var(--cream)}
+.exit-divider{height:1px;background:var(--gold-dim);margin:.5rem 0}
+.exit-grand{display:flex;justify-content:space-between;font-size:.82rem;font-weight:700;color:var(--gold);padding:.4rem 0}
+
+/* Contagion banner */
+.contagion{display:flex;align-items:flex-start;gap:.85rem;background:rgba(184,57,42,.07);border:1px solid rgba(184,57,42,.2);border-radius:3px;padding:1rem 1.1rem;margin-top:1rem}
+.contagion-icon{font-size:1.2rem;flex-shrink:0;margin-top:.1rem}
+.contagion-text{font-size:.75rem;color:var(--muted);line-height:1.65}
+.contagion-text strong{color:var(--cream)}
+
+/* ── SECTION 5: RIVANI SCENARIO ─────────────────── */
+.scenario-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem}
+.stab{padding:.45rem 1.1rem;border:1px solid var(--bord);border-radius:2px;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);cursor:pointer;transition:all .15s}
+.stab.active{background:var(--surf2);border-color:var(--gold);color:var(--gold)}
+
+.scenario-layout{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;align-items:start}
+.scenario-body{}
+.scenario-panel{display:none}
+.scenario-panel.active{display:block}
+.scen-h{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--cream);margin-bottom:.4rem}
+.scen-sub{font-size:.78rem;color:var(--muted);line-height:1.7;margin-bottom:1.25rem;max-width:500px}
+.scen-slider-row{margin-bottom:1rem}
+.scen-slider-label{font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.3rem;display:flex;justify-content:space-between}
+.scen-slider-label span{color:var(--gold);font-weight:600}
+
+.scenario-result{background:var(--surf);border:1px solid var(--bord);border-top:2px solid var(--gold);border-radius:3px;padding:1.25rem;position:sticky;top:0}
+.sr-eye{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+.sr-num{font-family:'Cormorant Garamond',serif;font-size:2.8rem;color:var(--gold);line-height:1;margin-bottom:.3rem;transition:all .3s}
+.sr-label{font-size:.72rem;color:var(--muted);margin-bottom:1.25rem}
+.sr-rows{list-style:none}
+.sr-row{display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid var(--bord);font-size:.74rem}
+.sr-row:last-child{border-bottom:none}
+.sr-row-label{color:var(--muted)}
+.sr-row-val{font-weight:600;color:var(--cream)}
+.sr-total{display:flex;justify-content:space-between;padding:.5rem 0 0;margin-top:.15rem;border-top:1px solid var(--gold-dim);font-size:.82rem;font-weight:700;color:var(--gold)}
+
+.insight-box{background:rgba(187,148,113,.07);border:1px solid rgba(187,148,113,.22);border-radius:3px;padding:1rem 1.1rem;margin-top:1rem}
+.insight-eye{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem}
+.insight-text{font-size:.78rem;color:var(--muted);line-height:1.7}
+.insight-text strong{color:var(--cream)}
+
+/* Thesis card at end */
+.thesis-card{background:var(--surf);border:1px solid var(--bord);border-top:2px solid var(--gold);border-radius:3px;padding:1.5rem;margin-top:1.5rem}
+.thesis-eye{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.65rem}
+.thesis-q{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-style:italic;font-weight:300;color:var(--cream);line-height:1.55;margin-bottom:.75rem}
+.thesis-hint{font-size:.76rem;color:var(--muted);line-height:1.7}
+
+/* shared utils */
+.spacer{height:1rem}
+.gold-text{color:var(--gold)}
+.red-text{color:var(--red-lt)}
+</style>
+</head>
+<body>
+
+<!-- TOP CONTROL BAR -->
+<div class="topbar">
+  <div class="wordmark">RIVANI</div>
+  <div class="salary-control">
+    <div class="salary-label">Base Salary</div>
+    <div class="salary-value" id="sal-display">$60,000</div>
+    <input type="range" id="salary" min="30000" max="300000" step="5000" value="60000">
+    <div class="range-ends"><span>$30K</span><span>$300K</span></div>
+  </div>
+</div>
+
+<!-- PROGRESS DOTS + CROSS-NAV -->
+<div class="progress-bar">
+  <!-- ghost mirrors right link width to keep dots perfectly centered -->
+  <span class="tool-link-ghost">People Analytics: Span of Control &nbsp;&#8599;</span>
+  <div class="progress-dots">
+    <div class="pdot active" onclick="goTo(0)"></div>
+    <div class="pdot" onclick="goTo(1)"></div>
+    <div class="pdot" onclick="goTo(2)"></div>
+    <div class="pdot" onclick="goTo(3)"></div>
+    <div class="pdot" onclick="goTo(4)"></div>
+  </div>
+  <!-- UPDATE href to match your Vercel deployment URL -->
+  <a href="span-of-control.html" class="tool-link">People Analytics: Span of Control &nbsp;&#8599;</a>
+</div>
+
+<!-- SECTIONS -->
+<div class="sections">
+
+<!-- ─── SECTION 1: THE ANNOUNCED NUMBER ─────────── -->
+<div class="section active" id="s0">
+<div class="sec-inner">
+  <div class="sec-num">Section 01 of 05</div>
+  <div class="sec-h">The <em>announced</em> number.</div>
+  <div class="sec-sub">This is what the offer letter says. It's the number the new hire tells their family. It's the number in the press release. It's the starting point — and it dramatically understates what this decision actually costs.</div>
+
+  <div class="announced-hero">
+    <div class="announced-tag">Stated Salary</div>
+    <div class="announced-num" id="s1-big">$60,000</div>
+    <div class="announced-caption">This is the figure most companies budget against. The number in the offer letter is not the cost of the hire. It's the cost of showing up. The real investment starts the moment the ink dries.</div>
+    <div class="announced-note">
+      <div class="announced-icon">📋</div>
+      <div class="announced-note-text"><strong>The rule of thumb:</strong> The fully burdened labor rate for a typical professional role runs <strong>1.4x to 1.7x</strong> base salary — and that's before you account for a single departure.</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ─── SECTION 2: FULLY LOADED COST ────────────── -->
+<div class="section" id="s1">
+<div class="sec-inner">
+  <div class="sec-num">Section 02 of 05</div>
+  <div class="sec-h">The <em>fully burdened</em> cost.</div>
+  <div class="sec-sub">Toggle each cost layer. Watch the number change. This is what it costs Rivani to have this person at their desk — every year, before a single thing goes wrong.</div>
+
+  <div class="mode-tabs">
+    <div class="mode-tab active" data-mode="y1" onclick="setMode(this,'y1')">Year 1 (with acquisition)</div>
+    <div class="mode-tab" data-mode="ongoing" onclick="setMode(this,'ongoing')">Ongoing Annual</div>
+  </div>
+
+  <div class="loaded-layout">
+    <div>
+
+      <!-- CAT A: Compensation -->
+      <div class="cat-block">
+        <div class="cat-title">A — Direct Compensation <span class="cat-subtotal" id="cat-a-sub"></span></div>
+        <div class="comp-row mandatory on">
+          <div class="cb">&#10003;</div><div class="dot8" style="background:var(--fore-lt)"></div>
+          <div class="cr-body"><div class="cr-name">Base Salary</div><div class="cr-detail">Annual fixed compensation</div></div>
+          <div class="cr-amt" id="amt-salary">$60,000</div>
+        </div>
+        <div class="comp-row on" data-key="bonus" onclick="tog(this)">
+          <div class="cb">&#10003;</div><div class="dot8" style="background:#BB9471"></div>
+          <div class="cr-body"><div class="cr-name">Annual Performance Bonus</div><div class="cr-detail">10% of salary — typical for professional / managerial roles</div></div>
+          <div class="cr-amt" id="amt-bonus"></div>
+        </div>
+        <div class="comp-row on" data-key="match" onclick="tog(this)">
+          <div class="cb">&#10003;</div><div class="dot8" style="background:#BB9471"></div>
+          <div class="cr-body"><div class="cr-name">401(k) Employer Match</div><div class="cr-detail">3% of salary — common matching threshold</div></div>
+          <div class="cr-amt" id="amt-match"></div>
+        </div>
+      </div>
+
+      <!-- CAT B: Taxes -->
+      <div class="cat-block">
+        <div class="cat-title">B — Mandatory Payroll Taxes <span class="cat-subtotal" id="cat-b-sub"></span></div>
+        <div class="comp-row mandatory on">
+          <div class="cb">&#10003;</div><div class="dot8" style="background:#A07D5F"></div>
+          <div class="cr-body"><div class="cr-name">Employer FICA</div><div class="cr-detail">7.65% — Social Security (6.2%) + Medicare (1.45%) — employer's share</div></div>
+          <div class="cr-amt" id="amt-fica"></div>
+        </div>
+        <div class="comp-row mandatory on">
+          <div class="cb">&#10003;</div><div class="dot8" style="background:#A07D5F"></div>
+          <div class="cr-body"><div class="cr-name">FUTA + FL SUTA</div><div class="cr-detail">Federal + state unemployment tax — approx. $231 flat for most FL employers</div></div>
+          <div class="cr-amt" id="amt-futa">$231</div>
+        </div>
+        <div class="comp-row mandatory on">
+          <div class="cb">&#10003;</div><div class="dot8" style="background:#A07D5F"></div>
+          <div class="cr-body"><div class="cr-name">Workers' Compensation</div><div class="cr-detail">Florida required — 1.25% for office / clerical roles</div></div>
+          <div class="cr-amt" id="amt-wc"></div>
+        </div>
+      </div>
+
+      <!-- CAT C: Benefits -->
+      <div class="cat-block">
+        <div class="cat-title">C — Employee Benefits <span class="cat-subtotal" id="cat-c-sub"></span></div>
+        <div class="comp-row on" data-key="health" onclick="tog(this)">
+          <div class="cb">&#10003;</div><div class="dot8" style="background:#C8A882"></div>
+          <div class="cr-body"><div class="cr-name">Health Insurance</div><div class="cr-detail">Employer share for single coverage — national avg $7K-$9K; using $8K</div></div>
+          <div class="cr-amt" id="amt-health">$8,000</div>
+        </div>
+        <div class="comp-row on" data-key="dental" onclick="tog(this)">
+          <div class="cb">&#10003;</div><div class="dot8" style="background:#C8A882"></div>
+          <div class="cr-body"><div class="cr-name">Dental + Vision</div><div class="cr-detail">Employer contribution — typically $550-$750/year</div></div>
+          <div class="cr-amt" id="amt-dental">$650</div>
+        </div>
+        <div class="comp-row on" data-key="life" onclick="tog(this)">
+          <div class="cb">&#10003;</div><div class="dot8" style="background:#C8A882"></div>
+          <div class="cr-body"><div class="cr-name">Life + Disability Insurance</div><div class="cr-detail">Group term life + short/long-term disability premiums</div></div>
+          <div class="cr-amt" id="amt-life">$400</div>
+        </div>
+        <div class="comp-row on" data-key="pto" onclick="tog(this)">
+          <div class="cb">&#10003;</div><div class="dot8" style="background:#C8A882"></div>
+          <div class="cr-body"><div class="cr-name">PTO Cost (Paid Non-Working Days)</div><div class="cr-detail">15 days PTO + 10 holidays = 25 days of paid output you don't receive</div></div>
+          <div class="cr-amt" id="amt-pto"></div>
+        </div>
+      </div>
+
+      <!-- CAT D: Overhead -->
+      <div class="cat-block">
+        <div class="cat-title">D — Overhead <span class="cat-subtotal" id="cat-d-sub"></span></div>
+        <div class="comp-row on" data-key="equip" onclick="tog(this)">
+          <div class="cb">&#10003;</div><div class="dot8" style="background:#8A6548"></div>
+          <div class="cr-body"><div class="cr-name">Equipment + Software</div><div class="cr-detail">Laptop, monitors, software licenses — amortized over 3 years</div></div>
+          <div class="cr-amt" id="amt-equip">$1,500</div>
+        </div>
+        <div class="comp-row on" data-key="space" onclick="tog(this)">
+          <div class="cb">&#10003;</div><div class="dot8" style="background:#8A6548"></div>
+          <div class="cr-body"><div class="cr-name">Office Space Allocation</div><div class="cr-detail">Miami Beach commercial real estate — $4K-$8K per seat annually; using $4K</div></div>
+          <div class="cr-amt" id="amt-space">$4,000</div>
+        </div>
+      </div>
+
+      <!-- CAT E: Acquisition (Y1 only) -->
+      <div class="cat-block" id="cat-e-block">
+        <div class="cat-title">E — Acquisition (Year 1 Only) <span class="cat-subtotal" id="cat-e-sub"></span></div>
+        <div class="comp-row on" data-key="recruit" onclick="tog(this)">
+          <div class="cb">&#10003;</div><div class="dot8" style="background:#D4BC96"></div>
+          <div class="cr-body"><div class="cr-name">Recruiting Cost</div><div class="cr-detail">25% of salary — luxury/specialized roles at the top of the 10%-25% range</div></div>
+          <div class="cr-amt" id="amt-recruit"></div>
+        </div>
+        <div class="comp-row on" data-key="onboard" onclick="tog(this)">
+          <div class="cb">&#10003;</div><div class="dot8" style="background:#D4BC96"></div>
+          <div class="cr-body"><div class="cr-name">Onboarding + Ramp Cost</div><div class="cr-detail">5 weeks at 50% productivity — manager time, training, reduced output</div></div>
+          <div class="cr-amt" id="amt-onboard"></div>
+        </div>
+      </div>
+
+    </div><!-- /left -->
+
+    <!-- SIDEBAR -->
+    <div>
+    <div class="total-panel">
+      <div class="tp-eye" id="tp-eye-label">Total Year-One Investment</div>
+      <div class="tp-num" id="tp-total">$0</div>
+      <div class="tp-mult">vs. salary: <span id="tp-mult">0.0x</span> the announced number</div>
+
+      <div class="sbar-wrap">
+        <div class="sbar-col">
+          <div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:flex-end">
+            <div class="sbar-fill" id="sbar-sal" style="background:var(--forest);height:0%"></div>
+          </div>
+          <div class="sbar-col-label">Stated<br>Salary</div>
+        </div>
+        <div class="sbar-col">
+          <div id="sbar-total-stack" style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;border-radius:2px 2px 0 0"></div>
+          <div class="sbar-col-label">Actual<br>Investment</div>
+        </div>
+      </div>
+
+      <ul class="bdown" id="bdown">
+        <li class="bdown-row" id="br-salary"><span class="bdown-left"><span class="dot8" style="background:var(--fore-lt)"></span>Salary</span><span class="bdown-right" id="bv-salary"></span></li>
+        <li class="bdown-row" id="br-bonus"><span class="bdown-left"><span class="dot8" style="background:#BB9471"></span>Bonus</span><span class="bdown-right" id="bv-bonus"></span></li>
+        <li class="bdown-row" id="br-match"><span class="bdown-left"><span class="dot8" style="background:#BB9471"></span>401k Match</span><span class="bdown-right" id="bv-match"></span></li>
+        <li class="bdown-row" id="br-taxes"><span class="bdown-left"><span class="dot8" style="background:#A07D5F"></span>All Taxes</span><span class="bdown-right" id="bv-taxes"></span></li>
+        <li class="bdown-row" id="br-benefits"><span class="bdown-left"><span class="dot8" style="background:#C8A882"></span>Benefits + PTO</span><span class="bdown-right" id="bv-benefits"></span></li>
+        <li class="bdown-row" id="br-overhead"><span class="bdown-left"><span class="dot8" style="background:#8A6548"></span>Overhead</span><span class="bdown-right" id="bv-overhead"></span></li>
+        <li class="bdown-row" id="br-acq"><span class="bdown-left"><span class="dot8" style="background:#D4BC96"></span>Acquisition</span><span class="bdown-right" id="bv-acq"></span></li>
+      </ul>
+      <div class="bdown-total-row"><span>Total</span><span id="bdown-total"></span></div>
+    </div>
+    </div><!-- /sidebar -->
+  </div><!-- /loaded-layout -->
+</div>
+</div>
+
+<!-- ─── SECTION 3: RISK LAYER ─────────────────────── -->
+<div class="section" id="s2">
+<div class="sec-inner">
+  <div class="sec-num">Section 03 of 05</div>
+  <div class="sec-h">The <em>risk layer</em> nobody budgets for.</div>
+  <div class="sec-sub">The previous section covered the predictable cost. These are the episodic costs — events that aren't in the annual budget until they are. At a 17-person firm, a single incident in any of these categories can materially affect operations.</div>
+
+  <div class="risk-grid">
+    <div class="risk-card amber">
+      <div class="risk-label">Workers' Compensation Claims</div>
+      <div class="risk-title">Workplace Injury Event</div>
+      <div class="risk-range">$20K – $80K</div>
+      <div class="risk-body">Average workers' comp claim in Florida runs $41,000 per incident (NCCI). Even in office environments — slip/fall, ergonomic injury, stress-related claims — one event eliminates a year of cost savings from a "cheap" hire. Premium rates also increase post-claim.</div>
+    </div>
+    <div class="risk-card red">
+      <div class="risk-label">Employment Practices Liability</div>
+      <div class="risk-title">Wrongful Termination / Discrimination Claim</div>
+      <div class="risk-range">$40K – $200K+</div>
+      <div class="risk-body">The average EEOC charge settlement runs $40,000-$75,000 for a single-claimant case. Litigation defense alone can exceed $100,000 before a judgment. Florida is an at-will state, but documentation quality determines survivability at the EEOC level.</div>
+    </div>
+    <div class="risk-card gold">
+      <div class="risk-label">Leave Administration Exposure</div>
+      <div class="risk-title">FMLA / ADA Mishandling</div>
+      <div class="risk-range">$5K – $50K</div>
+      <div class="risk-body">Small employers under 50 employees are not covered by FMLA, but Florida's own leave laws and ADA overlap create traps. Improperly denying a qualifying leave or failing to engage in the interactive process can produce liability that dwarfs the cost of proper administration.</div>
+    </div>
+    <div class="risk-card red">
+      <div class="risk-label">Wage and Hour Violations</div>
+      <div class="risk-title">Misclassification / Overtime Exposure</div>
+      <div class="risk-range">Back pay + 2x damages</div>
+      <div class="risk-body">FLSA misclassification exposes Rivani to two years of back overtime pay, doubled as liquidated damages, plus attorney's fees. The current Florida minimum wage is $14.00/hour (2025). A single non-exempt employee improperly classified costs more to correct than to fix upfront.</div>
+    </div>
+  </div>
+
+  <div class="risk-probability-note">
+    <strong>The math that matters for a 17-person firm:</strong> At a 5% annual probability of any single employment claim, a company of 17 employees has an 85% cumulative probability of facing one within 10 years — and a 58% probability within 5 years. These are not low-probability events. They are deferred events. The HR function is the risk mitigation instrument that reduces their severity and frequency.
+  </div>
+</div>
+</div>
+
+<!-- ─── SECTION 4: EXIT EVENT ─────────────────────── -->
+<div class="section" id="s3">
+<div class="sec-inner">
+  <div class="sec-num">Section 04 of 05</div>
+  <div class="sec-h">The <em>exit event.</em></div>
+  <div class="sec-sub">Every employee eventually leaves. The question is whether it's on your terms or theirs, and what it costs either way. Adjust the sliders to build the real exit cost for a role at this salary.</div>
+
+  <div class="exit-layout">
+    <div class="exit-inputs">
+
+      <div class="exit-slider-row">
+        <div class="exit-slider-label">Tenure at departure (months) <span id="ex-tenure-val">12</span></div>
+        <input type="range" id="ex-tenure" min="1" max="60" step="1" value="12" oninput="calcExit()">
+      </div>
+      <div class="exit-slider-row">
+        <div class="exit-slider-label">Severance (weeks per year of service) <span id="ex-sev-val">2</span> wks</div>
+        <input type="range" id="ex-sev" min="0" max="8" step="1" value="2" oninput="calcExit()">
+      </div>
+      <div class="exit-slider-row">
+        <div class="exit-slider-label">Days to fill the role <span id="ex-days-val">45</span></div>
+        <input type="range" id="ex-days" min="14" max="180" step="7" value="45" oninput="calcExit()">
+      </div>
+      <div class="exit-slider-row">
+        <div class="exit-slider-label">New hire ramp-up (months to full productivity) <span id="ex-ramp-val">3</span> mo</div>
+        <input type="range" id="ex-ramp" min="1" max="12" step="1" value="3" oninput="calcExit()">
+      </div>
+
+      <div class="contagion">
+        <div class="contagion-icon">⚠</div>
+        <div class="contagion-text">
+          <strong>Contagion risk:</strong> A Gallup study found that 51% of employees who witnessed a colleague's departure actively considered leaving within 6 months. At 17 people, one departure has a 51% chance of triggering a second. Two departures in a small firm can produce a cascade. This calculator does not model contagion — which means it understates the true exit cost.
+        </div>
+      </div>
+
+    </div>
+
+    <div>
+    <div class="exit-result-panel">
+      <div class="exit-total-label">Total Exit Cost</div>
+      <div class="exit-total-num" id="exit-total">$0</div>
+      <div class="exit-mult-label">That's <span id="exit-mult">0.0x</span> the annual salary</div>
+      <ul class="exit-bdown">
+        <li class="exit-row"><span class="exit-row-label">Severance</span><span class="exit-row-val" id="ex-v-sev">$0</span></li>
+        <li class="exit-row"><span class="exit-row-label">Exit admin + processing</span><span class="exit-row-val">$500</span></li>
+        <li class="exit-row"><span class="exit-row-label">Vacancy productivity loss</span><span class="exit-row-val" id="ex-v-vac">$0</span></li>
+        <li class="exit-row"><span class="exit-row-label">Recruiting (replacement)</span><span class="exit-row-val" id="ex-v-rec">$0</span></li>
+        <li class="exit-row"><span class="exit-row-label">New hire ramp-up gap</span><span class="exit-row-val" id="ex-v-ramp">$0</span></li>
+        <div class="exit-divider"></div>
+        <li class="exit-grand"><span>Total Exit Cost</span><span id="ex-v-total">$0</span></li>
+      </ul>
+    </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ─── SECTION 5: RIVANI LENS ─────────────────────── -->
+<div class="section" id="s4">
+<div class="sec-inner">
+  <div class="sec-num">Section 05 of 05</div>
+  <div class="sec-h">The <em>Rivani lens.</em></div>
+  <div class="sec-sub">Commercial real estate isn't like other industries. Relationships are assets. Deals are long. Key people carry institutional knowledge that doesn't survive a turnover event cleanly. Here's what that looks like in dollars.</div>
+
+  <div class="scenario-tabs">
+    <div class="stab active" onclick="setScen(this,'am')">Asset Manager Departure</div>
+    <div class="stab" onclick="setScen(this,'pm')">Project Manager Exit</div>
+    <div class="stab" onclick="setScen(this,'gen')">General Staffing Scenario</div>
+  </div>
+
+  <div class="scenario-layout">
+    <div class="scenario-body">
+
+      <!-- AM SCENARIO -->
+      <div class="scenario-panel active" id="sp-am">
+        <div class="scen-h">An Asset Manager departs mid-portfolio.</div>
+        <div class="scen-sub">An asset manager at a luxury CRE firm typically manages 3-6 active properties. They carry tenant relationships, deal structures, vendor contacts, and institutional knowledge of each asset. When they leave, none of that transfers cleanly.</div>
+        <div class="scen-slider-row">
+          <div class="scen-slider-label">Annual Salary of Departing AM <span id="am-sal-val">$95,000</span></div>
+          <input type="range" id="am-sal" min="70000" max="200000" step="5000" value="95000" oninput="calcAM()">
+        </div>
+        <div class="scen-slider-row">
+          <div class="scen-slider-label">Active properties / deals under management <span id="am-deals-val">4</span></div>
+          <input type="range" id="am-deals" min="1" max="10" step="1" value="4" oninput="calcAM()">
+        </div>
+        <div class="scen-slider-row">
+          <div class="scen-slider-label">Estimated revenue per deal ($K) <span id="am-rev-val">$150K</span></div>
+          <input type="range" id="am-rev" min="50000" max="1000000" step="25000" value="150000" oninput="calcAM()">
+        </div>
+        <div class="scen-slider-row">
+          <div class="scen-slider-label">% of deals disrupted or delayed by departure <span id="am-pct-val">35%</span></div>
+          <input type="range" id="am-pct" min="5" max="90" step="5" value="35" oninput="calcAM()">
+        </div>
+        <div class="insight-box">
+          <div class="insight-eye">Why CRE Is Different</div>
+          <div class="insight-text">In commercial real estate, an asset manager isn't just doing a job — they're holding relationships. Tenants, brokers, lenders, and vendors transact with people, not companies. When a key AM leaves, those relationships don't automatically transfer. A replacement needs 6-12 months to develop deal-level credibility from scratch. That's not a productivity ramp. That's a relationship rebuild — and it's a cost that doesn't appear in any turnover calculator.</div>
+        </div>
+      </div>
+
+      <!-- PM SCENARIO -->
+      <div class="scenario-panel" id="sp-pm">
+        <div class="scen-h">A Project Manager exits during construction.</div>
+        <div class="scen-sub">Construction PMs carry the thread on multiple active projects — vendor contracts, permit timelines, subcontractor relationships, and the day-to-day knowledge of what's actually happening on site. A mid-project exit doesn't just slow things down. It can stop them.</div>
+        <div class="scen-slider-row">
+          <div class="scen-slider-label">Annual Salary of Departing PM <span id="pm-sal-val">$85,000</span></div>
+          <input type="range" id="pm-sal" min="60000" max="180000" step="5000" value="85000" oninput="calcPM()">
+        </div>
+        <div class="scen-slider-row">
+          <div class="scen-slider-label">Active projects under management <span id="pm-proj-val">3</span></div>
+          <input type="range" id="pm-proj" min="1" max="8" step="1" value="3" oninput="calcPM()">
+        </div>
+        <div class="scen-slider-row">
+          <div class="scen-slider-label">Average project value ($M) <span id="pm-pval-val">$2.5M</span></div>
+          <input type="range" id="pm-pval" min="500000" max="50000000" step="250000" value="2500000" oninput="calcPM()">
+        </div>
+        <div class="scen-slider-row">
+          <div class="scen-slider-label">Expected delay in weeks per project <span id="pm-delay-val">6 wks</span></div>
+          <input type="range" id="pm-delay" min="1" max="26" step="1" value="6" oninput="calcPM()">
+        </div>
+        <div class="insight-box">
+          <div class="insight-eye">The Construction Timeline Problem</div>
+          <div class="insight-text">A 6-week delay on a $2.5M construction project is not just a scheduling issue. <strong>Delay costs in commercial construction typically run 0.5%-1.5% of project value per month.</strong> That's $12,500 to $37,500 per month of slippage — before you account for contractor penalty clauses, permit re-applications, or the carrying cost on financed projects. The PM departure isn't the cost. The timeline disruption is.</div>
+        </div>
+      </div>
+
+      <!-- GENERAL SCENARIO -->
+      <div class="scenario-panel" id="sp-gen">
+        <div class="scen-h">A general staffing scenario at Rivani's scale.</div>
+        <div class="scen-sub">Not every departure involves active deals. But at a 17-person firm, every departure matters. Build your own scenario.</div>
+        <div class="scen-slider-row">
+          <div class="scen-slider-label">Annual Salary <span id="gen-sal-val">$65,000</span></div>
+          <input type="range" id="gen-sal" min="30000" max="200000" step="5000" value="65000" oninput="calcGen()">
+        </div>
+        <div class="scen-slider-row">
+          <div class="scen-slider-label">Months of tenure <span id="gen-ten-val">18 mo</span></div>
+          <input type="range" id="gen-ten" min="1" max="60" step="1" value="18" oninput="calcGen()">
+        </div>
+        <div class="scen-slider-row">
+          <div class="scen-slider-label">Turnover cost multiplier <span id="gen-mult-val">1.0x</span></div>
+          <input type="range" id="gen-mult" min="0.5" max="2.5" step="0.1" value="1.0" oninput="calcGen()">
+        </div>
+        <div class="scen-slider-row">
+          <div class="scen-slider-label">Additional deal/project disruption ($) <span id="gen-deal-val">$0</span></div>
+          <input type="range" id="gen-deal" min="0" max="500000" step="5000" value="0" oninput="calcGen()">
+        </div>
+        <div class="insight-box">
+          <div class="insight-eye">The 17-Person Firm Context</div>
+          <div class="insight-text">At Rivani's headcount, there is no redundancy buffer. When one person leaves, the work doesn't wait. It gets absorbed by the people who remain — and <strong>those people are now at higher risk of leaving themselves.</strong> The 51% contagion figure from Gallup means a single unplanned departure at this scale carries a material probability of triggering a second. No calculator captures that cost. It belongs in the thesis, not the spreadsheet.</div>
+        </div>
+      </div>
+
+    </div><!-- /scenario-body -->
+
+    <!-- SCENARIO SIDEBAR -->
+    <div>
+    <div class="scenario-result" id="scen-panel">
+      <div class="sr-eye" id="sr-eye">Asset Manager — Full Cost Event</div>
+      <div class="sr-num" id="sr-total">$0</div>
+      <div class="sr-label" id="sr-label">Total estimated cost of this departure</div>
+      <ul class="sr-rows" id="sr-rows">
+        <!-- injected by JS -->
+      </ul>
+      <div class="sr-total" id="sr-grand"><span>Total</span><span id="sr-grand-val">$0</span></div>
+    </div>
+
+    <div class="thesis-card">
+      <div class="thesis-eye">Your Capstone Thesis Line</div>
+      <div class="thesis-q">"Why do small firms like Rivani sometimes resist hiring HR professionals?"</div>
+      <div class="thesis-hint">HR appears to be overhead until the moment it is not. The visible cost is the retainer. The invisible cost is the gap between what a firm thinks it spends on people and what it actually spends — a gap that widens with every unmanaged hire, every undocumented exit, and every deal that slips because the wrong person walked out the door.</div>
+    </div>
+    </div>
+  </div>
+</div>
+</div>
+
+</div><!-- /sections -->
+
+<!-- NAV FOOTER -->
+<div class="nav-footer">
+  <button class="nav-btn" id="btn-prev" onclick="step(-1)" disabled>&#8592; Previous</button>
+  <div class="sec-counter" id="sec-counter">01 / 05</div>
+  <button class="nav-btn primary" id="btn-next" onclick="step(1)">Next &#8594;</button>
+</div>
+
+<script>
+// ── STATE ────────────────────────────────────────────
+let currentSection = 0;
+const TOTAL = 5;
+let loadedMode = 'y1'; // 'y1' or 'ongoing'
+let activeScene = 'am';
+
+// ── UTILS ────────────────────────────────────────────
+function fmt(n){return '$'+Math.round(n).toLocaleString('en-US')}
+function fmtK(n){
+  if(n>=1000000) return '$'+(n/1e6).toFixed(1)+'M';
+  if(n>=1000)    return '$'+Math.round(n/1000)+'K';
+  return fmt(n);
+}
+function getSal(){return parseInt(document.getElementById('salary').value)}
+
+// ── NAVIGATION ───────────────────────────────────────
+function goTo(i){
+  document.querySelectorAll('.section')[currentSection].classList.remove('active');
+  document.querySelectorAll('.pdot')[currentSection].classList.remove('active');
+  document.querySelectorAll('.pdot')[currentSection].classList.add('done');
+  currentSection = i;
+  document.querySelectorAll('.section')[i].classList.add('active');
+  document.querySelectorAll('.pdot').forEach((d,idx)=>{
+    d.classList.remove('active','done');
+    if(idx<i) d.classList.add('done');
+    if(idx===i) d.classList.add('active');
+  });
+  document.getElementById('btn-prev').disabled = i===0;
+  document.getElementById('btn-next').disabled = i===TOTAL-1;
+  document.getElementById('btn-next').textContent = i===TOTAL-1?'Done \u2713':'Next \u2192';
+  document.getElementById('sec-counter').textContent = String(i+1).padStart(2,'0')+' / '+String(TOTAL).padStart(2,'0');
+}
+function step(d){const n=currentSection+d;if(n>=0&&n<TOTAL)goTo(n)}
+
+// ── SECTION 1: BIG NUMBER ────────────────────────────
+function updateS1(){
+  const s=getSal();
+  document.getElementById('sal-display').textContent=fmt(s);
+  document.getElementById('s1-big').textContent=fmt(s);
+}
+
+// ── SECTION 2: LOADED COST ───────────────────────────
+const SEG_COLORS={
+  salary:'#2D6339',bonus:'#BB9471',match:'#A8855F',
+  fica:'#9A7050',futa:'#8A6040',wc:'#7A5030',
+  health:'#C8A882',dental:'#B89872',life:'#A88862',pto:'#987852',
+  equip:'#8A6548',space:'#7A5538',
+  recruit:'#D4BC96',onboard:'#C4AC86'
+};
+
+function getActiveKeys(){
+  const keys=['salary'];
+  document.querySelectorAll('.comp-row[data-key]').forEach(el=>{
+    if(el.classList.contains('on')) keys.push(el.dataset.key);
+  });
+  return keys;
+}
+
+function getAmounts(s){
+  return {
+    salary:s,
+    bonus: s*0.10,
+    match: s*0.03,
+    fica:  s*0.0765,
+    futa:  231,
+    wc:    s*0.0125,
+    health:8000,
+    dental:650,
+    life:  400,
+    pto:   (s/260)*25,
+    equip: 1500,
+    space: 4000,
+    recruit:s*0.25,
+    onboard:(s/52)*5*0.5
+  };
+}
+
+function calcLoaded(){
+  const s=getSal();
+  const A=getAmounts(s);
+  const active=getActiveKeys();
+  const isY1=loadedMode==='y1';
+
+  // component display amounts
+  document.getElementById('amt-salary').textContent=fmt(s);
+  document.getElementById('amt-bonus').textContent=fmt(A.bonus);
+  document.getElementById('amt-match').textContent=fmt(A.match);
+  document.getElementById('amt-fica').textContent=fmt(A.fica);
+  document.getElementById('amt-wc').textContent=fmt(A.wc);
+  document.getElementById('amt-pto').textContent=fmt(A.pto);
+  document.getElementById('amt-recruit').textContent=fmt(A.recruit);
+  document.getElementById('amt-onboard').textContent=fmt(A.onboard);
+
+  // hide/show cat E
+  document.getElementById('cat-e-block').style.display=isY1?'block':'none';
+
+  // filter keys for mode
+  const validKeys=isY1?active:active.filter(k=>k!=='recruit'&&k!=='onboard');
+
+  let total=0;
+  validKeys.forEach(k=>{if(A[k]!==undefined)total+=A[k]});
+  // always add mandatory taxes even if not in active list (they're mandatory rows)
+  if(!validKeys.includes('fica')) total+=A.fica;
+  if(!validKeys.includes('futa')) total+=A.futa;
+  if(!validKeys.includes('wc'))   total+=A.wc;
+
+  // Actually recompute properly: mandatory keys always included
+  const mandatoryKeys=['salary','fica','futa','wc'];
+  const optionalKeys=validKeys.filter(k=>!mandatoryKeys.includes(k));
+  let realTotal=0;
+  mandatoryKeys.forEach(k=>realTotal+=A[k]);
+  optionalKeys.forEach(k=>{if(A[k]!==undefined) realTotal+=A[k]});
+  if(!isY1){realTotal-=(validKeys.includes('recruit')?A.recruit:0)+(validKeys.includes('onboard')?A.onboard:0)}
+
+  total=realTotal;
+
+  document.getElementById('tp-total').textContent=fmt(total);
+  document.getElementById('bdown-total').textContent=fmt(total);
+  document.getElementById('tp-eye-label').textContent=isY1?'Total Year-One Investment':'Ongoing Annual Investment';
+  document.getElementById('tp-mult').textContent=(total/s).toFixed(2)+'x';
+
+  // breakdown rows
+  const taxTotal=A.fica+A.futa+A.wc;
+  const benActive=(['health','dental','life','pto'].filter(k=>validKeys.includes(k)));
+  let benTotal=0; benActive.forEach(k=>benTotal+=A[k]);
+  const oheadActive=(['equip','space'].filter(k=>validKeys.includes(k)));
+  let oheadTotal=0; oheadActive.forEach(k=>oheadTotal+=A[k]);
+  const acqTotal=isY1?((validKeys.includes('recruit')?A.recruit:0)+(validKeys.includes('onboard')?A.onboard:0)):0;
+
+  document.getElementById('bv-salary').textContent=fmt(s);
+  document.getElementById('bv-bonus').textContent=validKeys.includes('bonus')?fmt(A.bonus):'—';
+  document.getElementById('bv-match').textContent=validKeys.includes('match')?fmt(A.match):'—';
+  document.getElementById('bv-taxes').textContent=fmt(taxTotal);
+  document.getElementById('bv-benefits').textContent=benTotal>0?fmt(benTotal):'—';
+  document.getElementById('bv-overhead').textContent=oheadTotal>0?fmt(oheadTotal):'—';
+  document.getElementById('bv-acq').textContent=isY1&&acqTotal>0?fmt(acqTotal):'—';
+
+  // dim breakdown rows
+  ['br-bonus','br-match'].forEach(id=>{
+    const k=id.replace('br-','');
+    document.getElementById(id).classList.toggle('dim',!validKeys.includes(k));
+  });
+  document.getElementById('br-acq').classList.toggle('dim',!isY1||acqTotal===0);
+
+  // cat subtotals
+  const compKeys=['salary','bonus','match'];
+  let catA=0; compKeys.forEach(k=>{if(k==='salary'||validKeys.includes(k)) catA+=A[k]});
+  document.getElementById('cat-a-sub').textContent=fmt(catA);
+  document.getElementById('cat-b-sub').textContent=fmt(taxTotal);
+  document.getElementById('cat-c-sub').textContent=fmt(benTotal);
+  let catD=0; oheadActive.forEach(k=>catD+=A[k]);
+  document.getElementById('cat-d-sub').textContent=catD>0?fmt(catD):'—';
+  document.getElementById('cat-e-sub').textContent=isY1&&acqTotal>0?fmt(acqTotal):'—';
+
+  // bars
+  const maxVal=Math.max(total,s)*1.1;
+  const salPct=(s/maxVal)*100;
+  document.getElementById('sbar-sal').style.height=salPct+'%';
+  // stacked bar
+  const stack=document.getElementById('sbar-total-stack');
+  stack.innerHTML='';
+  const orderedSegs=['onboard','recruit','space','equip','pto','life','dental','health','wc','futa','fica','match','bonus','salary'];
+  orderedSegs.forEach(k=>{
+    if(k==='fica'||k==='futa'||k==='wc'||k==='salary'){} // mandatory, always show
+    else if(!validKeys.includes(k)) return;
+    if(!isY1&&(k==='recruit'||k==='onboard')) return;
+    const h=(A[k]/maxVal)*100;
+    const seg=document.createElement('div');
+    seg.style.cssText=`height:${h}%;background:${SEG_COLORS[k]||'#888'};width:100%;transition:height .4s;flex-shrink:0`;
+    stack.appendChild(seg);
+  });
+}
+
+function tog(el){el.classList.toggle('on');el.classList.toggle('off');calcLoaded()}
+function setMode(el,mode){
+  loadedMode=mode;
+  document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  calcLoaded();
+}
+
+// ── EXIT CALC ─────────────────────────────────────────
+function calcExit(){
+  const s=getSal();
+  const tenMo=parseInt(document.getElementById('ex-tenure').value);
+  const sevWks=parseInt(document.getElementById('ex-sev').value);
+  const days=parseInt(document.getElementById('ex-days').value);
+  const rampMo=parseInt(document.getElementById('ex-ramp').value);
+
+  document.getElementById('ex-tenure-val').textContent=tenMo+' mo';
+  document.getElementById('ex-sev-val').textContent=sevWks;
+  document.getElementById('ex-days-val').textContent=days;
+  document.getElementById('ex-ramp-val').textContent=rampMo+' mo';
+
+  const dailyRate=s/260;
+  const sev=(s/52)*(sevWks*(tenMo/12));
+  const vac=dailyRate*days;
+  const rec=s*0.25;
+  const ramp=(s/12)*rampMo*0.5;
+  const total=sev+500+vac+rec+ramp;
+
+  document.getElementById('ex-v-sev').textContent=fmt(sev);
+  document.getElementById('ex-v-vac').textContent=fmt(vac);
+  document.getElementById('ex-v-rec').textContent=fmt(rec);
+  document.getElementById('ex-v-ramp').textContent=fmt(ramp);
+  document.getElementById('ex-v-total').textContent=fmt(total);
+  document.getElementById('exit-total').textContent=fmt(total);
+  document.getElementById('ex-v-total').textContent=fmt(total);
+  document.getElementById('exit-mult').textContent=(total/s).toFixed(2)+'x';
+}
+
+// ── SCENARIO CALCS ────────────────────────────────────
+function setScen(el,key){
+  activeScene=key;
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.scenario-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('sp-'+key).classList.add('active');
+  if(key==='am') calcAM();
+  else if(key==='pm') calcPM();
+  else calcGen();
+}
+
+function renderSRRows(rows,total){
+  const tbody=document.getElementById('sr-rows');
+  tbody.innerHTML='';
+  rows.forEach(r=>{
+    const li=document.createElement('li');
+    li.className='sr-row';
+    li.innerHTML=`<span class="sr-row-label">${r.label}</span><span class="sr-row-val">${fmt(r.val)}</span>`;
+    tbody.appendChild(li);
+  });
+  document.getElementById('sr-grand-val').textContent=fmt(total);
+  document.getElementById('sr-total').textContent=fmt(total);
+}
+
+function calcAM(){
+  const amSal=parseInt(document.getElementById('am-sal').value);
+  const deals=parseInt(document.getElementById('am-deals').value);
+  const revPerDeal=parseInt(document.getElementById('am-rev').value);
+  const pct=parseInt(document.getElementById('am-pct').value)/100;
+  document.getElementById('am-sal-val').textContent=fmt(amSal);
+  document.getElementById('am-deals-val').textContent=deals;
+  document.getElementById('am-rev-val').textContent=fmtK(revPerDeal);
+  document.getElementById('am-pct-val').textContent=Math.round(pct*100)+'%';
+
+  const replacement=amSal*1.35;
+  const rampGap=(amSal/12)*9*0.5;
+  const dealRisk=deals*revPerDeal*pct;
+  const admin=2500;
+  const total=replacement+rampGap+dealRisk+admin;
+
+  document.getElementById('sr-eye').textContent='Asset Manager — Total Event Cost';
+  document.getElementById('sr-label').textContent='Fully burdened cost including deal disruption';
+  renderSRRows([
+    {label:'Replacement cost (1.35x salary)',val:replacement},
+    {label:'9-month ramp-up gap (50% output)',val:rampGap},
+    {label:'Deal revenue at risk ('+Math.round(pct*100)+'% of '+deals+' deals)',val:dealRisk},
+    {label:'Exit admin + transition',val:admin},
+  ],total);
+}
+
+function calcPM(){
+  const pmSal=parseInt(document.getElementById('pm-sal').value);
+  const proj=parseInt(document.getElementById('pm-proj').value);
+  const pval=parseInt(document.getElementById('pm-pval').value);
+  const delay=parseInt(document.getElementById('pm-delay').value);
+  document.getElementById('pm-sal-val').textContent=fmt(pmSal);
+  document.getElementById('pm-proj-val').textContent=proj;
+  document.getElementById('pm-pval-val').textContent=fmtK(pval);
+  document.getElementById('pm-delay-val').textContent=delay+' wks';
+
+  const replacement=pmSal*1.3;
+  const rampGap=(pmSal/12)*6*0.5;
+  const delayWeeks=delay;
+  const delayCostPerProject=pval*0.01*(delayWeeks/4);
+  const totalDelayCost=delayCostPerProject*proj;
+  const total=replacement+rampGap+totalDelayCost+1500;
+
+  document.getElementById('sr-eye').textContent='Project Manager — Total Event Cost';
+  document.getElementById('sr-label').textContent='Replacement + ramp + delay cost across projects';
+  renderSRRows([
+    {label:'Replacement cost (1.3x salary)',val:replacement},
+    {label:'6-month ramp-up gap',val:rampGap},
+    {label:proj+' projects × '+delay+'-wk delay @ 1%/mo',val:totalDelayCost},
+    {label:'Admin + transition',val:1500},
+  ],total);
+}
+
+function calcGen(){
+  const gSal=parseInt(document.getElementById('gen-sal').value);
+  const tenMo=parseInt(document.getElementById('gen-ten').value);
+  const mult=parseFloat(document.getElementById('gen-mult').value);
+  const deal=parseInt(document.getElementById('gen-deal').value);
+  document.getElementById('gen-sal-val').textContent=fmt(gSal);
+  document.getElementById('gen-ten-val').textContent=tenMo+' mo';
+  document.getElementById('gen-mult-val').textContent=mult.toFixed(1)+'x';
+  document.getElementById('gen-deal-val').textContent=fmtK(deal);
+
+  const turnover=gSal*mult;
+  const total=turnover+deal;
+
+  document.getElementById('sr-eye').textContent='General Scenario — Total Cost';
+  document.getElementById('sr-label').textContent='Turnover cost + deal disruption';
+  renderSRRows([
+    {label:'Turnover cost ('+mult.toFixed(1)+'x salary)',val:turnover},
+    {label:'Deal / project disruption',val:deal},
+  ],total);
+}
+
+// ── GLOBAL SALARY CHANGE ─────────────────────────────
+document.getElementById('salary').addEventListener('input',function(){
+  updateS1();
+  calcLoaded();
+  calcExit();
+});
+
+// ── INIT ─────────────────────────────────────────────
+updateS1();
+calcLoaded();
+calcExit();
+calcAM();
+</script>
+<footer>HYPOTHETICAL LUXURY BRAND &nbsp;|&nbsp; HR Finance: Fully Loaded Employee Cost &nbsp;|&nbsp; Summer Internship 2026 &nbsp;|&nbsp; Created by Mohales Deis &nbsp;|&nbsp; Presented by Poprouser, Inc.</footer>
+</body>
+</html>
