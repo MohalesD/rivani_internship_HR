@@ -1,3 +1,10 @@
 {
-  "cleanUrls": true
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/hr-finance",
+      "destination": "/",
+      "permanent": false
+    }
+  ]
 }
